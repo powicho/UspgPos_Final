@@ -1,0 +1,125 @@
+﻿@model IEnumerable<UspgPOS.Models.Producto>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <button class="btn btn-outline-success" type="button" data-bs-toggle="modal" data-bs-target="#fileModal">
+        <i class="bi bi-file-earmark-spreadsheet"></i> Cargar Archivo
+      </button>
+    <a asp-action="Create" class="btn btn-success btn-sm">
+        <i class="fas fa-plus"></i> Crear Producto
+    </a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Nombre)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Precio)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Cantidad)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Marca)
+            </th>
+
+            <th>
+                @Html.DisplayNameFor(model => model.Clasificacion)
+            </th>
+
+            <th>
+                Imagen
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Nombre)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Precio)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Cantidad)
+            </td>
+                <td>
+                    @if (!string.IsNullOrEmpty(item.Marca.UrlThumbnailMarca))
+                    {
+                        <div>
+                            <img src="@item.Marca.UrlThumbnailMarca" style="max-width:50px; max-height:50px; vertical-align: middle; margin-right: 8px;" />
+                            @Html.DisplayFor(modelItem => item.Marca.Nombre)
+                        </div>
+                    }
+                    else
+                    {
+                        @Html.DisplayFor(modelItem => item.Marca.Nombre)
+                    }
+                </td>
+                <td>
+                    @if (!string.IsNullOrEmpty(item.Clasificacion.UrlThumbnailClasificacion))
+                    {
+                        <div>
+                            <img src="@item.Clasificacion.UrlThumbnailClasificacion" style="max-width:50px; max-height:50px; vertical-align: middle; margin-right: 8px;" />
+                            @Html.DisplayFor(modelItem => item.Clasificacion.Nombre)
+                        </div>
+                    }
+                    else
+                    {
+                        @Html.DisplayFor(modelItem => item.Clasificacion.Nombre)
+                    }
+                </td>
+                <td>
+                    @if (!string.IsNullOrEmpty(item.UrlThumbnailMarca))
+                    {
+                        <img src="@item.UrlThumbnailMarca" style="max-width:100px; max-height:100px" />
+                    }
+                    else
+                    {
+                        <p> No hay imagen disponible </p>
+                    }
+                </td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-warning btn-sm">
+                        <i class="fas fa-edit"></i> Editar
+                    </a>
+                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-primary btn-sm">
+                        <i class="fas fa-eye"></i> Ver Detalles
+                    </a>
+                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-danger btn-sm">
+                        <i class="fas fa-trash"></i> Eliminar
+                    </a>
+                </td>
+        </tr>
+}
+    </tbody>
+</table>
+<!-- Modal xls-->
+<div class="modal fade" id="fileModal" tabindex="-1" aria-labelledby="fileModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="fileModalLabel">Carga de Archivo Masiva</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" asp-action="CargarArchivo" enctype="multipart/form-data">
+                    <div class="form-group m-3">
+                        <label for="imageFile" class="control-label">Seleccione un archivo de Excel, que desee cargar</label>
+                        <input type="file" name="file" class="form-control" accept=".xlsx" />
+                    </div>
+                    <button type="submit" class="btn btn-primary">Cargar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

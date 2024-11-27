@@ -1,0 +1,120 @@
+﻿@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="row">
+    <div class="col-6">
+        <div class="card">
+            <div id="graficoPromedioDesemepenoSatisfaccion"></div>
+        </div>
+    </div>
+    <div class="col-6">
+        <div class="card">
+            <div id="graficoPuntajeDesemepenoSatisfaccion"></div>
+        </div>
+    </div>
+</div>
+
+<div class="col-6">
+    <div class="card">
+        <div id="graficoEmpleadosPorDepartamento"></div>
+    </div>
+</div>
+
+<div class="col-6">
+    <div class="card">
+        <div id="graficoEmpleadosPorAño"></div>
+    </div>
+</div>
+
+<style>
+    .card {
+        padding: 10px;
+        margin: 20px;
+    }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
+<script>
+    // Obtención de datos desde ViewBag
+    const departamentos = @Html.Raw(ViewBag.Departamentos);
+    const promedioDesempeno = @Html.Raw(ViewBag.PromedioDesempeno);
+    const promedioSatisfaccion = @Html.Raw(ViewBag.PromedioSatisfaccion);
+    const puntajeDesempeno = @Html.Raw(ViewBag.PuntajeDesempeno);
+    const puntajeSatisfaccion = @Html.Raw(ViewBag.PuntajeSatisfaccion);
+
+    const añosContratacion = @Html.Raw(ViewBag.AñosContratacion);
+    const cantidadEmpleados = @Html.Raw(ViewBag.CantidadEmpleados);
+
+    document.addEventListener("DOMContentLoaded", function () {
+        // Gráfico de radar para Desempeño Promedio y Satisfacción Promedio
+        const configuracionGraficoPromedioDesemepenoSatisfaccion = {
+            chart: { type: 'radar' },
+            series: [
+                { name: 'Desempeño Promedio', data: promedioDesempeno },
+                { name: 'Satisfacción Promedio', data: promedioSatisfaccion }
+            ],
+            labels: departamentos,
+            title: { text: 'Comparación de Desempeño y Satisfacción Promedio por Departamento' }
+        };
+
+        const graficoPromedioDesemepenoSatisfaccion = new ApexCharts(
+            document.getElementById("graficoPromedioDesemepenoSatisfaccion"),
+            configuracionGraficoPromedioDesemepenoSatisfaccion
+        );
+        graficoPromedioDesemepenoSatisfaccion.render();
+
+        // Gráfico de barras para Desempeño y Satisfacción
+        const configuracionGraficoPuntajeDesemepenoSatisfaccion = {
+            chart: { type: 'bar' },
+            series: [
+                { name: 'Desempeño', data: puntajeDesempeno.map(e => e.toFixed(2)) },
+                { name: 'Satisfacción', data: puntajeSatisfaccion.map(e => e.toFixed(2)) }
+            ],
+            xaxis: { categories: departamentos },
+            title: { text: 'Comparación Puntaje de Desempeño y Satisfacción por Departamento' }
+        };
+
+        const graficoPuntajeDesemepenoSatisfaccion = new ApexCharts(
+            document.getElementById('graficoPuntajeDesemepenoSatisfaccion'),
+            configuracionGraficoPuntajeDesemepenoSatisfaccion
+        );
+        graficoPuntajeDesemepenoSatisfaccion.render();
+
+        // Gráfico de Treemap para la cantidad de empleados por departamento
+        const configuracionGraficoEmpleadosPorDepartamento = {
+            chart: { type: 'treemap' },
+            series: [{
+                data: departamentos.map((departamento, index) => ({
+                    x: departamento,
+                    y: cantidadEmpleados[index]
+                }))
+            }],
+            title: { text: 'Cantidad de Empleados por Departamento' }
+        };
+
+        const graficoEmpleadosPorDepartamento = new ApexCharts(
+            document.getElementById('graficoEmpleadosPorDepartamento'),
+            configuracionGraficoEmpleadosPorDepartamento
+        );
+        graficoEmpleadosPorDepartamento.render();
+
+        // Gráfico de líneas para la cantidad de empleados por año
+        const configuracionGraficoEmpleadosPorAño = {
+            chart: { type: 'line' },
+            series: [
+                { name: 'Cantidad de Empleado', data: cantidadEmpleados }
+            ],
+            xaxis: { categories: añosContratacion },
+            title: { text: 'Cantidad de Empleados Contratados por Año' }
+        };
+
+        const graficoEmpleadosPorAño = new ApexCharts(
+            document.getElementById("graficoEmpleadosPorAño"),
+            configuracionGraficoEmpleadosPorAño
+        );
+        graficoEmpleadosPorAño.render();
+    });
+</script>
+
