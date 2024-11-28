@@ -9,6 +9,7 @@ using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using UspgPOS.Data;
+using UspgPOS.DTOs;
 using UspgPOS.Models;
 
 namespace UspgPOS.Controllers
@@ -199,80 +200,86 @@ namespace UspgPOS.Controllers
                     page.Size(PageSizes.A4);
                     page.Margin(1, Unit.Centimetre);
 
+                    // Encabezado
                     page.Header().Row(header =>
                     {
-                        header.RelativeItem().Text("Factura").FontSize(24).Bold().AlignCenter();
+                        header.RelativeItem().Column(column =>
+                        {
+                            column.Item().Text("Factura Comercial").FontSize(20).Bold();
+                            column.Item().Text($"Fecha: {venta.Fecha:dd/MM/yyyy}");
+                            column.Item().Text($"No. Factura: {venta.Id}");
+                            column.Item().Text($"Cliente: {venta.Cliente?.Nombre ?? "N/A"}");
+                            column.Item().Text($"NIT: {venta.Cliente?.Nit ?? "N/A"}");
+                        });
 
-                        header.ConstantItem(80).Image(logo, ImageScaling.FitArea);
-
+                        header.ConstantItem(100).Image(logo, ImageScaling.FitArea); // Espacio para el logo
                     });
 
+                    // Contenido principal
                     page.Content().Column(column =>
                     {
-
-                        column.Item().Row(row =>
-                        {
-                            row.RelativeItem().Text($"Fecha: {venta.Fecha.ToString("dd/MM/yyyy")}");
-                            row.RelativeItem().Text($"No. Factura: {venta.Id}");
-                        });
-
-
-                        column.Item().Row(row =>
-                        {
-                            row.RelativeItem().Text($"Cliente: {venta.Cliente?.Nombre}");
-                            row.RelativeItem().Text($"NIT: {venta.Cliente?.Nit}");
-                        });
-
-                        column.Item().Row(row =>
-                        {
-                            row.RelativeItem().Text($"Sucursal: {venta.Sucursal?.Nombre}");
-                        });
-
+                        // Espaciado vertical antes de la tabla
                         column.Item().PaddingVertical(1, Unit.Centimetre);
 
+                        // Tabla de productos
                         column.Item().Table(table =>
                         {
                             table.ColumnsDefinition(columns =>
                             {
-                                columns.RelativeColumn();
-                                columns.ConstantColumn(60);
-                                columns.ConstantColumn(100);
-                                columns.ConstantColumn(100);
+                                columns.ConstantColumn(60); // Cantidad
+                                columns.RelativeColumn();  // Descripción
+                                columns.ConstantColumn(100); // Precio Unitario
+                                columns.ConstantColumn(100); // Subtotal
                             });
 
+                            // Encabezado de la tabla
                             table.Header(header =>
                             {
-                                header.Cell().Element(EstiloCelda).Text("Producto").FontSize(12).Bold();
                                 header.Cell().Element(EstiloCelda).Text("Cantidad").FontSize(12).Bold();
+                                header.Cell().Element(EstiloCelda).Text("Descripción").FontSize(12).Bold();
                                 header.Cell().Element(EstiloCelda).Text("Precio Unitario").FontSize(12).Bold();
                                 header.Cell().Element(EstiloCelda).Text("Subtotal").FontSize(12).Bold();
 
                                 static IContainer EstiloCelda(IContainer container)
                                 {
-                                    return container.Background("#e0e0e0").Border(1).BorderColor("#e0e0e0").Padding(5).AlignCenter();
+                                    return container.Background("#e0e0e0").Border(1).Padding(5).AlignCenter();
                                 }
-
                             });
 
-
-                            foreach (DetalleVenta detalle in venta.DetallesVenta)
+                            // Cuerpo de la tabla
+                            foreach (var detalle in venta.DetallesVenta)
                             {
-                                table.Cell().Border(1).BorderColor("#c0c0c0").Padding(5).Text(detalle.Producto?.Nombre ?? "N/A");
-                                table.Cell().Border(1).BorderColor("#c0c0c0").Padding(5).AlignCenter().Text(detalle.Cantidad.ToString());
-                                table.Cell().Border(1).BorderColor("#c0c0c0").Padding(5).AlignRight().Text(detalle.PrecioUnitario.ToString("C", monedaGuatemala));
-                                table.Cell().Border(1).BorderColor("#c0c0c0").Padding(5).AlignRight().Text((detalle.Cantidad * detalle.PrecioUnitario).ToString("C", monedaGuatemala));
+                                table.Cell().Border(1).Padding(5).AlignCenter().Text(detalle.Cantidad.ToString());
+                                table.Cell().Border(1).Padding(5).Text(detalle.Producto?.Nombre ?? "N/A");
+                                table.Cell().Border(1).Padding(5).AlignRight().Text(detalle.PrecioUnitario.ToString("C", monedaGuatemala));
+                                table.Cell().Border(1).Padding(5).AlignRight().Text((detalle.Cantidad * detalle.PrecioUnitario).ToString("C", monedaGuatemala));
                             }
 
-                            table.Cell().ColumnSpan(3).Background("#f0f0f0").Border(1).BorderColor("#c0c0c0").Padding(5).AlignRight()
-                                .Text("TOTAL").FontSize(12).Bold();
-                            table.Cell().Background("#f0f0f0").Border(1).BorderColor("#c0c0c0").Padding(5).AlignRight()
-                                .Text(venta.Total.ToString("C", monedaGuatemala));
+                            // Total
+                            table.Cell().ColumnSpan(3).Background("#f0f0f0").Border(1).Padding(5).AlignRight().Text("TOTAL").FontSize(12).Bold();
+                            table.Cell().Background("#f0f0f0").Border(1).Padding(5).AlignRight().Text(venta.Total.ToString("C", monedaGuatemala));
                         });
 
+                        // Información adicional debajo de la tabla
+                        column.Item().Row(row =>
+                        {
+                            // Información de contacto
+                            row.RelativeItem().Column(contactColumn =>
+                            {
+                                contactColumn.Item().Text("Dirección: Calle cualquiera 123, cualquier lugar").FontSize(10);
+                                contactColumn.Item().Text("Correo: Hola@sitioincreible.com").FontSize(10);
+                                contactColumn.Item().Text("Teléfono: (55) 1234-5678").FontSize(10);
+                                contactColumn.Item().Text("Web: @sitioincreible").FontSize(10);
+                            });
 
+                            // Espacio para firma
+                            row.ConstantItem(120).Element(container =>
+                            {
+                                container.PaddingTop(1, Unit.Centimetre).AlignCenter().Text("FIRMA CLIENTE").FontSize(10);
+                            });
+                        });
                     });
 
-                    page.Footer().Text($"USPG POS - 2024 - {venta.Sucursal?.Nombre}").FontSize(10).AlignCenter();
                 });
             });
 
@@ -282,9 +289,54 @@ namespace UspgPOS.Controllers
 
             return File(stream, "application/pdf", $"Factura_{id}.pdf");
         }
-    }        
+
+		[HttpPost]
+		public async Task<IActionResult> CrearVenta([FromBody] VentaDTO ventaDto)
+		{
+			if (ventaDto == null || ventaDto.Detalles == null || !ventaDto.Detalles.Any())
+			{
+				return BadRequest("Datos de la venta invalidos");
+			}
+
+			var sucursalId = HttpContext.Session.GetString("SucursalId");
+			if (string.IsNullOrEmpty(sucursalId))
+			{
+				return BadRequest("No se encontró la sucursal en la sesión");
+			}
+
+			var cliente = await _context.Clientes.FindAsync(ventaDto.ClienteId);
+			if (cliente == null)
+			{
+				return BadRequest("El cliente seleccionado no existe");
+			}
+
+			Venta nuevaVenta = new Venta
+			{
+				Fecha = DateTime.Now,
+				ClienteId = ventaDto.ClienteId,
+				SucursalId = long.Parse(sucursalId),
+				Total = ventaDto.Detalles.Sum(d => d.Cantidad * d.PrecioUnitario)
+			};
+
+			_context.Ventas.Add(nuevaVenta);
+			await _context.SaveChangesAsync();
+
+			foreach (DetalleVentaDTO detalleDto in ventaDto.Detalles)
+			{
+				var detalle = new DetalleVenta
+				{
+					VentaId = nuevaVenta.Id.Value,
+					ProductoId = detalleDto.ProductoId,
+					Cantidad = detalleDto.Cantidad,
+					PrecioUnitario = detalleDto.PrecioUnitario
+				};
+
+				_context.DetallesVenta.Add(detalle);
+			}
+
+			await _context.SaveChangesAsync();
+
+			return Ok(new { VentaId = nuevaVenta.Id });
+		}
+	}
 }
- 
-
-    
-
