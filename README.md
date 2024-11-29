@@ -1,0 +1,1 @@
+Proyecto POS o punto de venta con la capacidad de carga de archivos xls, maipulacion de datos de base de datos como productos y clientes, y la capacidad de generar facturas con la compra de productos con la vista de carrito para agregar productos
